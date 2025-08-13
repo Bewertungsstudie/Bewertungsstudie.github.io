@@ -28,7 +28,7 @@
               }
             });
             const json = await res.json();
-            return json?.data?.count ?? 0;
+            return json?.count ?? 0;
           } catch (err) {
             console.error(`Error fetching counter ${counterName}:`, err);
             return 0;
