@@ -15,16 +15,19 @@
       ["https://survey.questionstar.com/9e704022", "counterf"]
     ];
 
-    // Lade die bisherigen Zählstände oder setze auf 0
-    let res = await fetch(`https://api.counterapi.dev/v2//bewertungsstudie/countertotal}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
+    async function getTotalCount(){      
+      // Lade die bisherigen Zählstände oder setze auf 0
+      let res = await fetch(`https://api.counterapi.dev/v2//bewertungsstudie/countertotal}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
+      return res.json().data?.up_count ?? 0;    
+    }
     
-    const totalCount = res.json().data?.up_count ?? 0;
+    const totalCount = getTotalCount();
 
     // Fetch up_count for all counters
     async function fetchCounts() {
@@ -95,11 +98,11 @@
       }
     }
     
-    const counts = await fetchCounts();
+    const counts = fetchCounts();
     const index = getNextIndex(counts);
     const [link, counterName] = links[index];
     // Automatische Weiterleitung
-    window.onload = await redirectToSurvey();
+    window.onload = redirectToSurvey();
   </script>
 </head>
 <body>
