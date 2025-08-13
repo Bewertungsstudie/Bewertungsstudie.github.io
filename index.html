@@ -13,7 +13,7 @@
       ["https://survey.questionstar.com/9e704022", "counterf"]
     ];
 
-    const API_BASE = "https://api.counterapi.dev/v1";
+    const API_BASE = "https://api.counterapi.dev/v1/bewertungsstudie";
 
     // Fetch up_count for all counters
     async function fetchCounts() {
@@ -22,7 +22,7 @@
           try {
             const res = await fetch(`${API_BASE}/${counterName}`);
             const json = await res.json();
-            return json?.value ?? 0; // v1 uses "value" instead of "up_count"
+            return json?.data?.up_count ?? 0;
           } catch (err) {
             console.error(`Error fetching counter ${counterName}:`, err);
             return 0;
