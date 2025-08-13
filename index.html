@@ -28,7 +28,7 @@
               }
             });
             const json = await res.json();
-            return json?.data?.up_count ?? 0;
+            return json?.data?.count ?? 0;
           } catch (err) {
             console.error(`Error fetching counter ${counterName}:`, err);
             return 0;
@@ -72,7 +72,7 @@
         ]);
 
         // Redirect to the survey
-        //window.location.href = link;
+        window.location.href = link;
 
       } catch (err) {
         console.error("Error during redirect:", err);
