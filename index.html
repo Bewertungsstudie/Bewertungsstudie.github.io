@@ -21,7 +21,12 @@
       return Promise.all(
         links.map(async ([_, counterName]) => {
           try {
-            const res = await fetch(`${CORS_PROXY}${API_BASE}/${counterName}`);
+            const res = await fetch(`${CORS_PROXY}${API_BASE}/${counterName}`, {
+              method: 'GET',
+              headers: {
+                'Origin': 'github'
+              }
+            });
             const json = await res.json();
             return json?.data?.up_count ?? 0;
           } catch (err) {
@@ -42,7 +47,12 @@
     // Increment counter
     async function incrementCounter(counterName) {
       try {
-        await fetch(`${CORS_PROXY}${API_BASE}/${counterName}/up`);
+        await fetch(`${CORS_PROXY}${API_BASE}/${counterName}/up`, {
+          method: 'GET',
+          headers: {
+            'Origin': 'github'
+          }
+        });
       } catch (err) {
         console.error(`Error incrementing counter ${counterName}:`, err);
       }
