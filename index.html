@@ -28,9 +28,6 @@
               }
             });
             const json = await res.json();
-            console.error(json);
-            console.error(json.count);
-            console.error(json.name);
             return json.count;
           } catch (err) {
             console.error(`Error fetching counter ${counterName}:`, err);
@@ -65,7 +62,9 @@
     async function redirectToSurvey() {
       try {
         const counts = await fetchCounts();
+        console.error(counts);
         const idx = getNextIndex(counts);
+        console.error(idx);
         const [link, counterName] = links[idx];
 
         // Increment the chosen counter and total counter in parallel
