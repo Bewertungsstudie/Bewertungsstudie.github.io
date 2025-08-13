@@ -38,7 +38,7 @@
     }
 
     // Pick a random index among links with the lowest count
-    function getNextIndex(counts) {
+    function getNextIndex(countPairs) {
         // Extract counts
         const counts = countPairs.map(([count]) => count);      
         // Find the minimum count
