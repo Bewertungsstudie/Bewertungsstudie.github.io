@@ -5,7 +5,7 @@
   <title>Umfrage-Verteiler</title>
   <script>
     const API_KEY = "ut_9LCqOv31LX56PG9NDrNqksGhtEsPz1jFg4tKdKQa";
-    
+
     const links = [
       ["https://survey.questionstar.com/cb99420f", "countera"],
       ["https://survey.questionstar.com/9f6bf697", "counterb"],
@@ -15,8 +15,9 @@
       ["https://survey.questionstar.com/9e704022", "counterf"]
     ];
 
+    // Fetch up_count for all counters
     async function fetchCounts() {
-      const counts = await Promise.all(
+      return Promise.all(
         links.map(async ([_, counterName]) => {
           try {
             const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}`, {
@@ -29,20 +30,32 @@
             const json = await res.json();
             return json?.data?.up_count ?? 0;
           } catch (err) {
-            console.error(err);
+            console.error(`Error fetching counter ${counterName}:`, err);
             return 0;
           }
         })
       );
-      return counts;
     }
 
+    // Pick a random index among links with the lowest count
     function getNextIndex(counts) {
       const min = Math.min(...counts);
       const indices = counts.map((c, i) => (c === min ? i : -1)).filter(i => i !== -1);
       return indices[Math.floor(Math.random() * indices.length)];
     }
 
+    // Increment a counter
+    async function incrementCounter(counterName) {
+      await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+
+    // Main function: pick a link, increment counters, redirect
     async function redirectToSurvey() {
       try {
         const counts = await fetchCounts();
@@ -50,32 +63,21 @@
         const [link, counterName] = links[idx];
 
         // Increment the chosen counter
-        await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`,
-            "Content-Type": "application/json"
-          }
-        });
+        await incrementCounter(counterName);
 
         // Increment total counter
-        await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`,
-            "Content-Type": "application/json"
-          }
-        });
+        await incrementCounter("countertotal");
 
         // Redirect to the survey link
         window.location.href = link;
 
       } catch (err) {
-        console.error(err);
+        console.error("Error during redirect:", err);
         alert("Something went wrong. Please try again.");
       }
     }
 
+    // Start the redirect on page load
     window.onload = redirectToSurvey;
   </script>
 </head>
