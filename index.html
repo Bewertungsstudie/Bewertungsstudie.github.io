@@ -31,7 +31,7 @@
       const counts = await Promise.all(
         links.map(async ([_, counterName]) => {
           try {
-            const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
+            const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}`, {
               method: "GET",
               headers: {
                 "Authorization": `Bearer ${API_KEY}`,
@@ -59,10 +59,29 @@
     }
 
     function redirectToSurvey() {
-      const idx = getNextIndex();
-      counts[idx]++;
-      localStorage.setItem("distributionCounts", JSON.stringify(counts));
-      window.location.href = links[idx];
+      const idx = getNextIndex();      
+      const [link, counterName] = links[index];
+    
+      try {
+        // Increment the counter
+        const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          }
+        });
+    
+        if (!res.ok) throw new Error(`Failed to increment counter: ${counterName}`);
+        console.log(`Counter ${counterName} incremented.`);
+    
+        // Redirect to the survey link
+        window.location.href = link;
+    
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+      }
     }
 
     const counts = await fetchCounts();
