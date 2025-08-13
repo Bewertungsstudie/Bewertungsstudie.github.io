@@ -28,7 +28,7 @@
               }
             });
             const json = await res.json();
-            return json.count;
+            return [json.count, json.name];
           } catch (err) {
             console.error(`Error fetching counter ${counterName}:`, err);
             return 0;
@@ -39,9 +39,26 @@
 
     // Pick a random index among links with the lowest count
     function getNextIndex(counts) {
-      const min = Math.min(...counts);
-      const indices = counts.map((c, i) => (c === min ? i : -1)).filter(i => i !== -1);
-      return indices[Math.floor(Math.random() * indices.length)];
+        // Extract counts
+        const counts = countPairs.map(([count]) => count);      
+        // Find the minimum count
+        const min = Math.min(...counts);
+      
+        // Find all indices with the minimum count
+        const minIndices = counts
+          .map((c, i) => (c === min ? i : -1))
+          .filter(i => i !== -1);
+      
+        // Pick a random index among the minimums
+        const chosenIndex = minIndices[Math.floor(Math.random() * minIndices.length)];
+      
+        // Get the corresponding name
+        const chosenName = countPairs[chosenIndex][1];
+      
+        // Find the link that matches the name
+        const linkIndex = links.findIndex(([_, name]) => name === chosenName);
+      
+        return linkIndex;
     }
 
     // Increment counter
@@ -63,7 +80,7 @@
       try {
         const counts = await fetchCounts();
         console.error(counts);
-        const idx = getNextIndex(counts);
+        const idx = getNextLink(counts);
         console.error(idx);
         const [link, counterName] = links[idx];
 
