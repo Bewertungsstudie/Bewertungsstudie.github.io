@@ -91,7 +91,7 @@
         ]);
 
         // Redirect to the survey
-        // window.location.href = link;
+        window.location.href = link;
 
       } catch (err) {
         console.error("Error during redirect:", err);
@@ -99,8 +99,7 @@
       }
     }
 
-    // window.onload = redirectToSurvey;
-    redirectToSurvey();
+    window.onload = redirectToSurvey;
   </script>
 </head>
 <body>
