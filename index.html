@@ -4,20 +4,55 @@
   <meta charset="UTF-8">
   <title>Umfrage-Verteiler</title>
   <script>
+    const API_KEY = "ut_9LCqOv31LX56PG9NDrNqksGhtEsPz1jFg4tKdKQa"; // <-- hier einfügen
+    
     const links = [
-      "https://survey.questionstar.com/cb99420f",
-      "https://survey.questionstar.com/9f6bf697",
-      "https://survey.questionstar.com/172443bb",
-      "https://survey.questionstar.com/2daa4b2d",
-      "https://survey.questionstar.com/b0c109f6",
-      "https://survey.questionstar.com/9e704022"
+      ["https://survey.questionstar.com/cb99420f", "countera"],
+      ["https://survey.questionstar.com/9f6bf697", "counterb"],
+      ["https://survey.questionstar.com/172443bb", "counterc"],
+      ["https://survey.questionstar.com/2daa4b2d", "counterd"],
+      ["https://survey.questionstar.com/b0c109f6", "countere"],
+      ["https://survey.questionstar.com/9e704022", "counterf"]
     ];
 
     // Lade die bisherigen Zählstände oder setze auf 0
-    let counts = JSON.parse(localStorage.getItem("distributionCounts")) || Array(links.length).fill(0);
+    let res = await fetch(`https://api.counterapi.dev/v2//bewertungsstudie/countertotal}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json"
+      }
+    });
+    
+    const totalCount = res.json().data?.up_count ?? 0;
 
-    // Finde den Index mit der niedrigsten Zahl
-    function getNextIndex() {
+    // Fetch up_count for all counters
+    async function fetchCounts() {
+      const counts = await Promise.all(
+        links.map(async ([_, counterName]) => {
+          try {
+            const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${API_KEY}`,
+                "Content-Type": "application/json"
+              }
+            });
+            if (!res.ok) throw new Error(`Failed to fetch counter: ${counterName}`);
+            const json = await res.json();
+            return json?.data?.up_count ?? 0; // fallback to 0 if undefined
+          } catch (err) {
+            console.error(err);
+            return 0;
+          }
+        })
+      );
+    
+      return counts;
+    }
+    
+    // Pick a random index among links with the lowest count
+    function getNextIndex(counts) {
       const min = Math.min(...counts);
       const indices = counts.map((c, i) => (c === min ? i : -1)).filter(i => i !== -1);
       return indices[Math.floor(Math.random() * indices.length)];
@@ -30,6 +65,16 @@
       window.location.href = links[idx];
     }
 
+    const counts = await fetchCounts();
+    const index = getNextIndex(counts);
+    const [link, counterName] = links[index];
+    await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json"
+      }
+    });
     // Automatische Weiterleitung
     window.onload = redirectToSurvey;
   </script>
