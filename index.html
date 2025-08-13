@@ -15,58 +15,33 @@
 
     const API_BASE = "https://api.counterapi.dev/v1/bewertungsstudie";
 
-    // Fetch up_count for all counters
-    async function fetchCounts() {
-      return Promise.all(
-        links.map(async ([_, counterName]) => {
-          try {
-            const res = await fetch(`${API_BASE}/${counterName}`);
-            const json = await res.json();
-            return json?.data?.up_count ?? 0;
-          } catch (err) {
-            console.error(`Error fetching counter ${counterName}:`, err);
-            return 0;
-          }
-        })
-      );
+    // Pick a random index (since we can't fetch counts due to CORS)
+    function getNextIndex() {
+      return Math.floor(Math.random() * links.length);
     }
 
-    // Pick a random index among links with the lowest count
-    function getNextIndex(counts) {
-      const min = Math.min(...counts);
-      const indices = counts.map((c, i) => (c === min ? i : -1)).filter(i => i !== -1);
-      return indices[Math.floor(Math.random() * indices.length)];
-    }
+    // Increment counter by navigating to the API endpoint in a hidden iframe
+    function incrementCounter(counterName) {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `${API_BASE}/${counterName}/up`;
+      document.body.appendChild(iframe);
 
-    // Increment counter
-    async function incrementCounter(counterName) {
-      try {
-        await fetch(`${API_BASE}/${counterName}/up`);
-      } catch (err) {
-        console.error(`Error incrementing counter ${counterName}:`, err);
-      }
+      // Remove iframe after a short delay to clean up
+      setTimeout(() => document.body.removeChild(iframe), 1000);
     }
 
     // Main redirect function
-    async function redirectToSurvey() {
-      try {
-        const counts = await fetchCounts();
-        const idx = getNextIndex(counts);
-        const [link, counterName] = links[idx];
+    function redirectToSurvey() {
+      const idx = getNextIndex();
+      const [link, counterName] = links[idx];
 
-        // Increment the chosen counter and total counter in parallel
-        await Promise.all([
-          incrementCounter(counterName),
-          incrementCounter("countertotal")
-        ]);
+      // Increment the chosen counter and total counter
+      incrementCounter(counterName);
+      incrementCounter("countertotal");
 
-        // Redirect to the survey
-        window.location.href = link;
-
-      } catch (err) {
-        console.error("Error during redirect:", err);
-        alert("Something went wrong. Please try again.");
-      }
+      // Redirect to the survey
+      window.location.href = link;
     }
 
     window.onload = redirectToSurvey;
