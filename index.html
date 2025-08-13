@@ -58,11 +58,11 @@
       return indices[Math.floor(Math.random() * indices.length)];
     }
 
-    function redirectToSurvey() {
+    async function redirectToSurvey() {
       const idx = getNextIndex();      
       const [link, counterName] = links[index];
     
-      try {
+      try {        
         // Increment the counter
         const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
           method: "GET",
@@ -74,7 +74,18 @@
     
         if (!res.ok) throw new Error(`Failed to increment counter: ${counterName}`);
         console.log(`Counter ${counterName} incremented.`);
-    
+
+        const res2 = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!res2.ok) throw new Error(`Failed to increment counter: ${counterName}`);
+        console.log(`Counter ${counterName} incremented.`);
+            
         // Redirect to the survey link
         window.location.href = link;
     
@@ -83,19 +94,12 @@
         alert("Something went wrong. Please try again.");
       }
     }
-
+    
     const counts = await fetchCounts();
     const index = getNextIndex(counts);
     const [link, counterName] = links[index];
-    await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
     // Automatische Weiterleitung
-    window.onload = redirectToSurvey;
+    window.onload = await redirectToSurvey();
   </script>
 </head>
 <body>
