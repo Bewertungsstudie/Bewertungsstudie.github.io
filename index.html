@@ -80,7 +80,7 @@
       try {
         const counts = await fetchCounts();
         console.error(counts);
-        const idx = getNextLink(counts);
+        const idx = getNextIndex(counts);
         console.error(idx);
         const [link, counterName] = links[idx];
 
