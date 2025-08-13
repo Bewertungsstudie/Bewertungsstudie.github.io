@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Umfrage-Verteiler</title>
   <script>
-    const API_KEY = "ut_9LCqOv31LX56PG9NDrNqksGhtEsPz1jFg4tKdKQa"; // <-- hier einfügen
+    const API_KEY = "ut_9LCqOv31LX56PG9NDrNqksGhtEsPz1jFg4tKdKQa";
     
     const links = [
       ["https://survey.questionstar.com/cb99420f", "countera"],
@@ -15,21 +15,6 @@
       ["https://survey.questionstar.com/9e704022", "counterf"]
     ];
 
-    async function getTotalCount(){      
-      // Lade die bisherigen Zählstände oder setze auf 0
-      let res = await fetch(`https://api.counterapi.dev/v2//bewertungsstudie/countertotal}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      });
-      return res.json().data?.up_count ?? 0;    
-    }
-    
-    const totalCount = getTotalCount();
-
-    // Fetch up_count for all counters
     async function fetchCounts() {
       const counts = await Promise.all(
         links.map(async ([_, counterName]) => {
@@ -41,20 +26,17 @@
                 "Content-Type": "application/json"
               }
             });
-            if (!res.ok) throw new Error(`Failed to fetch counter: ${counterName}`);
             const json = await res.json();
-            return json?.data?.up_count ?? 0; // fallback to 0 if undefined
+            return json?.data?.up_count ?? 0;
           } catch (err) {
             console.error(err);
             return 0;
           }
         })
       );
-    
       return counts;
     }
-    
-    // Pick a random index among links with the lowest count
+
     function getNextIndex(counts) {
       const min = Math.min(...counts);
       const indices = counts.map((c, i) => (c === min ? i : -1)).filter(i => i !== -1);
@@ -62,23 +44,13 @@
     }
 
     async function redirectToSurvey() {
-      const idx = getNextIndex();      
-      const [link, counterName] = links[index];
-    
-      try {        
-        // Increment the counter
-        const res = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`,
-            "Content-Type": "application/json"
-          }
-        });
-    
-        if (!res.ok) throw new Error(`Failed to increment counter: ${counterName}`);
-        console.log(`Counter ${counterName} incremented.`);
+      try {
+        const counts = await fetchCounts();
+        const idx = getNextIndex(counts);
+        const [link, counterName] = links[idx];
 
-        const res2 = await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
+        // Increment the chosen counter
+        await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/${counterName}/up`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${API_KEY}`,
@@ -86,23 +58,25 @@
           }
         });
 
-        if (!res2.ok) throw new Error(`Failed to increment counter: ${counterName}`);
-        console.log(`Counter ${counterName} incremented.`);
-            
+        // Increment total counter
+        await fetch(`https://api.counterapi.dev/v2/bewertungsstudie/countertotal/up`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          }
+        });
+
         // Redirect to the survey link
         window.location.href = link;
-    
+
       } catch (err) {
         console.error(err);
         alert("Something went wrong. Please try again.");
       }
     }
-    
-    const counts = fetchCounts();
-    const index = getNextIndex(counts);
-    const [link, counterName] = links[index];
-    // Automatische Weiterleitung
-    window.onload = redirectToSurvey();
+
+    window.onload = redirectToSurvey;
   </script>
 </head>
 <body>
